@@ -1,0 +1,139 @@
+.video-player.tam-player {
+  position: relative;
+}
+
+.tam-video,
+.tam-status {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  background: #000;
+}
+
+.tam-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 102;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 32px 10px 8px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.tam-controls.tam-active,
+.tam-controls:has(.tam-menu:not([hidden])) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tam-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.tam-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tam-button svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.tam-volume-group {
+  display: flex;
+  align-items: center;
+}
+
+.tam-volume {
+  width: 0;
+  margin: 0;
+  opacity: 0;
+  accent-color: #fff;
+  transition: width 0.15s, opacity 0.15s, margin 0.15s;
+}
+
+.tam-volume-group:hover .tam-volume,
+.tam-volume:focus {
+  width: 90px;
+  margin: 0 8px;
+  opacity: 1;
+}
+
+.tam-clip {
+  margin-left: auto;
+}
+
+.tam-clip:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.tam-settings {
+  position: relative;
+}
+
+.tam-menu {
+  position: absolute;
+  right: 0;
+  bottom: 38px;
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+  padding: 6px;
+  border-radius: 6px;
+  background: #18181b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.tam-menu[hidden] {
+  display: none;
+}
+
+.tam-menu-item {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #efeff1;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tam-menu-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.tam-menu-item.tam-selected {
+  color: #bf94ff;
+  font-weight: 600;
+}
+
+.tam-status {
+  z-index: 101;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  pointer-events: none;
+}
