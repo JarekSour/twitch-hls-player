@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Twitch HLS Player",
   "version": "0.2.0",
-  "description": "Reemplaza el reproductor de Twitch por uno con hls.js que filtra los anuncios de la playlist.",
+  "description": "Replaces the Twitch player with an hls.js player that filters ads out of the playlist.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",

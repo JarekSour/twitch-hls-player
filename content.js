@@ -16,6 +16,8 @@
   const QUALITY_KEY = 'tam-quality';
   const VOLUME_KEY = 'tam-volume';
   const CONTROLS_HIDE_MS = 2500;
+  const PAUSE_KEYS = new Set(['Space', 'KeyK']);
+  const INTERACTIVE_SELECTOR = 'a, button, input, select, textarea, [role="button"], [role="textbox"]';
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const ICONS = {
     play: 'M8 5v14l11-7z',
@@ -80,7 +82,7 @@
     while (!current.stopped) {
       const res = await fetch(variantUrl);
       if (res.ok && TwitchPlaylist.hasContent(await res.text())) return;
-      current.status.textContent = 'Esperando a que termine el anuncio…';
+      current.status.textContent = 'Waiting for the ad to finish…';
       await sleep(AD_POLL_MS);
     }
   }
@@ -122,11 +124,17 @@
     button.replaceChildren(svg);
   }
 
+  // data-tooltip y no title: el tooltip nativo del navegador no admite estilos.
+  function setTooltip(button, title) {
+    button.dataset.tooltip = title;
+    button.setAttribute('aria-label', title);
+  }
+
   function createButton(icon, title) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'tam-button';
-    button.title = title;
+    if (title) setTooltip(button, title);
     setIcon(button, icon);
     return button;
   }
@@ -134,7 +142,7 @@
   // La preferencia se guarda por etiqueta: los índices cambian entre canales.
   function createQualityMenu(hls) {
     // hls.js ordena de menor a mayor; el menú se muestra de mayor a menor.
-    const options = [{ label: 'Automática', index: -1 }];
+    const options = [{ label: 'Auto', index: -1 }];
     for (let i = hls.levels.length - 1; i >= 0; i -= 1) {
       options.push({ label: qualityLabel(hls.levels[i]), index: i });
     }
@@ -169,7 +177,7 @@
     if (savedOption.index !== -1) hls.loadLevel = savedOption.index;
     select(menu.children[options.indexOf(savedOption)]);
 
-    const settings = createButton(ICONS.settings, 'Calidad');
+    const settings = createButton(ICONS.settings, 'Quality');
     settings.addEventListener('click', () => { menu.hidden = !menu.hidden; });
 
     const element = document.createElement('div');
@@ -235,7 +243,6 @@
     const volume = document.createElement('input');
     volume.type = 'range';
     volume.className = 'tam-volume';
-    volume.title = 'Volumen';
     volume.min = '0';
     volume.max = '1';
     volume.step = '0.01';
@@ -257,23 +264,69 @@
 
     const quality = createQualityMenu(hls);
 
-    const play = createButton(ICONS.pause, 'Pausar o reanudar');
+    const play = createButton(ICONS.pause, 'Pause (space/k)');
+    const indicator = document.createElement('div');
+    indicator.className = 'tam-indicator';
+    // Reiniciar la animación exige forzar un reflow entre quitar y poner la clase.
+    const flashIndicator = (icon) => {
+      setIcon(indicator, icon);
+      indicator.classList.remove('tam-flash');
+      void indicator.offsetWidth;
+      indicator.classList.add('tam-flash');
+    };
+
     const togglePlay = () => {
-      if (video.paused) video.play().catch(() => {});
-      else video.pause();
+      if (!video.paused) {
+        video.pause();
+        flashIndicator(ICONS.pause);
+        return;
+      }
+      flashIndicator(ICONS.play);
+      // Al reanudar se salta al último segmento de la playlist, no al punto donde se pausó.
+      const details = hls.latestLevelDetails;
+      const lastFragment = details && details.fragments[details.fragments.length - 1];
+      if (lastFragment && lastFragment.start > video.currentTime) {
+        video.currentTime = lastFragment.start;
+      }
+      video.play().catch(() => {});
     };
     play.addEventListener('click', togglePlay);
     video.addEventListener('click', () => {
-      if (!quality.close()) togglePlay();
+      if (!quality.close() && video.paused) togglePlay();
     });
-    video.addEventListener('play', () => setIcon(play, ICONS.pause));
-    video.addEventListener('pause', () => setIcon(play, ICONS.play));
 
-    const mute = createButton(ICONS.volume, 'Silenciar');
+    // Fase de captura: si no, el atajo de Twitch actuaría sobre su reproductor pausado.
+    const onKeyDown = (event) => {
+      if (!PAUSE_KEYS.has(event.code) || event.ctrlKey || event.altKey || event.metaKey) return;
+      const { target } = event;
+      const isOutsideControl = !controls.contains(target)
+        && (target.isContentEditable || target.closest(INTERACTIVE_SELECTOR));
+      if (isOutsideControl) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      if (!event.repeat) togglePlay();
+    };
+    document.addEventListener('keydown', onKeyDown, true);
+    current.onKeyDown = onKeyDown;
+    video.addEventListener('play', () => {
+      setIcon(play, ICONS.pause);
+      setTooltip(play, 'Pause (space/k)');
+      video.classList.remove('tam-paused');
+    });
+    video.addEventListener('pause', () => {
+      setIcon(play, ICONS.play);
+      setTooltip(play, 'Resume (space/k)');
+      video.classList.add('tam-paused');
+    });
+
+    const mute = createButton(ICONS.volume);
     const volume = createVolumeSlider(video);
     const syncVolume = () => {
       setIcon(mute, video.muted || video.volume === 0 ? ICONS.muted : ICONS.volume);
       volume.value = String(video.muted ? 0 : video.volume);
+      // El navegador no pinta el tramo relleno en un slider con estilo propio.
+      volume.style.setProperty('--tam-volume-fill', `${volume.value * 100}%`);
     };
     mute.addEventListener('click', () => { video.muted = !video.muted; });
     video.addEventListener('volumechange', syncVolume);
@@ -283,16 +336,16 @@
     volumeGroup.className = 'tam-volume-group';
     volumeGroup.append(mute, volume);
 
-    const clip = createButton(ICONS.clip, 'Crear clip');
+    const clip = createButton(ICONS.clip, 'Create clip');
     clip.classList.add('tam-clip');
     clip.addEventListener('click', () => createClip(current, clip));
 
-    const theatre = createButton(ICONS.theatre, 'Modo cine');
+    const theatre = createButton(ICONS.theatre, 'Theatre mode');
     theatre.addEventListener('click', () => {
       triggerNative(player, 'player-theatre-mode-button', 't');
     });
 
-    const fullscreen = createButton(ICONS.fullscreen, 'Pantalla completa');
+    const fullscreen = createButton(ICONS.fullscreen, 'Fullscreen');
     fullscreen.addEventListener('click', () => {
       if (document.fullscreenElement) document.exitFullscreen();
       else player.requestFullscreen();
@@ -322,7 +375,8 @@
     controls.addEventListener('mouseleave', onMouseLeave);
 
     current.controls = controls;
-    player.append(controls);
+    current.indicator = indicator;
+    player.append(indicator, controls);
   }
 
   function startPlayback(current, masterUrl) {
@@ -335,7 +389,8 @@
       stopSession();
     });
     hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      current.status.remove();
+      // Hasta el primer fotograma: el manifest llega antes que el video.
+      current.video.addEventListener('playing', () => current.status.remove(), { once: true });
       addControls(current, hls);
       current.video.play().catch(() => {
         // Chrome bloquea el autoplay con sonido; se activa desde los controles del video.
@@ -376,7 +431,7 @@
 
     const status = document.createElement('div');
     status.className = 'tam-status';
-    status.textContent = 'Cargando stream…';
+    status.textContent = 'Loading stream…';
 
     player.classList.add('tam-player');
     player.append(video, status);
@@ -393,7 +448,9 @@
     current.video.remove();
     current.status.remove();
     clearTimeout(current.hideTimer);
+    if (current.onKeyDown) document.removeEventListener('keydown', current.onKeyDown, true);
     if (current.controls) current.controls.remove();
+    if (current.indicator) current.indicator.remove();
     current.player.classList.remove('tam-player');
 
     current.muted.forEach((video) => {
