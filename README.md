@@ -1,36 +1,38 @@
 # Twitch HLS Player
 
-Extensión para navegadores basados en Chromium, como Chrome, Edge y Brave (Manifest V3), que reemplaza el reproductor de Twitch por uno propio basado en [hls.js](https://github.com/video-dev/hls.js) y filtra de la playlist los segmentos de anuncio.
+**English** | [Español](README.es.md)
 
-Twitch inserta los anuncios dentro del propio stream, por lo que bloquear dominios no sirve. Esta extensión elimina esos segmentos antes de que lleguen al reproductor.
+An extension for Chromium-based browsers such as Chrome, Edge and Brave (Manifest V3). It replaces the Twitch player with one built on [hls.js](https://github.com/video-dev/hls.js) and filters ad segments out of the playlist.
 
-## Funciones
+Twitch inserts ads into the stream itself, so blocking domains doesn't work. This extension removes those segments before they reach the player.
 
-- Reproduce los canales en directo con hls.js.
-- Filtra los segmentos de anuncio de la playlist.
-- Selector de calidad, con opción automática.
-- Controles al estilo de Twitch: reproducir, volumen, clip, calidad, modo cine y pantalla completa.
-- Recuerda la calidad y el volumen entre canales.
+## Features
 
-## Instalación
+- Plays live channels with hls.js.
+- Filters ad segments out of the playlist.
+- Quality selector with an automatic option.
+- Twitch-style controls: play, volume, clip, quality, theatre mode and fullscreen.
+- Remembers quality and volume across channels.
 
-1. Descarga o clona este repositorio.
-2. Abre la página de extensiones de tu navegador: `chrome://extensions`, `edge://extensions` o `brave://extensions`.
-3. Activa el **Modo de desarrollador**.
-4. Pulsa **Cargar descomprimida** y elige la carpeta del proyecto.
+## Installation
 
-## Limitaciones
+1. Download or clone this repository.
+2. Open your browser's extensions page: `chrome://extensions`, `edge://extensions` or `brave://extensions`.
+3. Turn on **Developer mode**.
+4. Click **Load unpacked** and choose the project folder.
 
-- **La espera del anuncio sigue:** no se ve ni se escucha, pero al abrir un canal aparece una pantalla de espera, y los anuncios a mitad de stream congelan el video hasta que acaban.
-- **Sin sesión de Twitch:** el stream se pide de forma anónima, así que los canales solo para suscriptores usan el reproductor original, con sus anuncios.
-- **Solo directos:** los videos grabados y los clips usan el reproductor original.
-- **Clips y modo cine:** dependen del reproductor original de Twitch y pueden fallar o, en el caso de los clips, tomar un momento incorrecto.
-- **Fragilidad:** los cambios de Twitch en su reproductor o en sus playlists pueden romper la extensión.
+## Limitations
 
-## Privacidad
+- **The ad wait remains:** ads aren't seen or heard, but a waiting screen appears when opening a channel, and mid-stream ads freeze the video until they end.
+- **No Twitch session:** the stream is requested anonymously, so subscriber-only channels use the original player, with its ads.
+- **Live only:** recorded videos and clips use the original player.
+- **Clips and theatre mode:** these rely on the original Twitch player and may fail or, for clips, capture the wrong moment.
+- **Fragility:** changes to Twitch's player or playlists can break the extension.
 
-La extensión no tiene servidor propio ni usa analíticas. Solo se comunica con Twitch, y la calidad y el volumen elegidos se guardan en el navegador.
+## Privacy
 
-## Aviso
+The extension has no server of its own and uses no analytics. It only communicates with Twitch, and your chosen quality and volume are stored in the browser.
 
-Proyecto personal sin relación con Twitch ni con Amazon. Twitch es una marca de sus respectivos propietarios. Evitar anuncios puede ir en contra de los términos de uso de la plataforma: úsalo bajo tu propia responsabilidad.
+## Disclaimer
+
+Personal project, not affiliated with Twitch or Amazon. Twitch is a trademark of its respective owners. Avoiding ads may go against the platform's terms of service: use at your own risk.
