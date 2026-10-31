@@ -1,7 +1,7 @@
 (() => {
   const CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
   const TOKEN_QUERY = `query($login: String!) {
-    streamPlaybackAccessToken(channelName: $login, params: {platform: "web", playerBackend: "mediaplayer", playerType: "site"}) {
+    streamPlaybackAccessToken(channelName: $login, params: {platform: "web", playerBackend: "mediaplayer", playerType: "embed"}) {
       value
       signature
     }

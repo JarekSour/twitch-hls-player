@@ -23,7 +23,7 @@ Twitch inserta los anuncios dentro del propio stream, por lo que bloquear domini
 
 ## Limitaciones
 
-- **La espera del anuncio sigue:** no se ve ni se escucha, pero al abrir un canal aparece una pantalla de espera, y los anuncios a mitad de stream congelan el video hasta que acaban.
+- **La espera del anuncio puede seguir:** no se ve ni se escucha, pero al abrir un canal puede aparecer una pantalla de espera, y los anuncios a mitad de stream congelan el video hasta que acaban.
 - **Sin sesión de Twitch:** el stream se pide de forma anónima, así que los canales solo para suscriptores usan el reproductor original, con sus anuncios.
 - **Solo directos:** los videos grabados y los clips usan el reproductor original.
 - **Clips y modo cine:** dependen del reproductor original de Twitch y pueden fallar o, en el caso de los clips, tomar un momento incorrecto.

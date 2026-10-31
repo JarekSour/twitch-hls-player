@@ -23,7 +23,7 @@ Twitch inserts ads into the stream itself, so blocking domains doesn't work. Thi
 
 ## Limitations
 
-- **The ad wait remains:** ads aren't seen or heard, but a waiting screen appears when opening a channel, and mid-stream ads freeze the video until they end.
+- **The ad wait may remain:** ads aren't seen or heard, but a waiting screen may appear when opening a channel, and mid-stream ads freeze the video until they end.
 - **No Twitch session:** the stream is requested anonymously, so subscriber-only channels use the original player, with its ads.
 - **Live only:** recorded videos and clips use the original player.
 - **Clips and theatre mode:** these rely on the original Twitch player and may fail or, for clips, capture the wrong moment.
