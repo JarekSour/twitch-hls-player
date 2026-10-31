@@ -1,6 +1,6 @@
 # Twitch HLS Player
 
-Extensión para Chrome y Edge (Manifest V3) que reemplaza el reproductor de Twitch por uno propio basado en [hls.js](https://github.com/video-dev/hls.js) y filtra de la playlist los segmentos de anuncio.
+Extensión para navegadores basados en Chromium, como Chrome, Edge y Brave (Manifest V3), que reemplaza el reproductor de Twitch por uno propio basado en [hls.js](https://github.com/video-dev/hls.js) y filtra de la playlist los segmentos de anuncio.
 
 Twitch inserta los anuncios dentro del propio stream, por lo que bloquear dominios no sirve. Esta extensión elimina esos segmentos antes de que lleguen al reproductor.
 
@@ -15,7 +15,7 @@ Twitch inserta los anuncios dentro del propio stream, por lo que bloquear domini
 ## Instalación
 
 1. Descarga o clona este repositorio.
-2. Abre `chrome://extensions` (o `edge://extensions`).
+2. Abre la página de extensiones de tu navegador: `chrome://extensions`, `edge://extensions` o `brave://extensions`.
 3. Activa el **Modo de desarrollador**.
 4. Pulsa **Cargar descomprimida** y elige la carpeta del proyecto.
 
