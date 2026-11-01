@@ -313,6 +313,14 @@
       if (!quality.close() && video.paused) togglePlay();
     });
 
+    // Fase de captura: Twitch puede detener la propagación de los clics en sus elementos.
+    // El video se excluye porque su propio clic ya cierra el menú sin reanudar.
+    const onDocumentClick = ({ target }) => {
+      if (target !== video && !quality.element.contains(target)) quality.close();
+    };
+    document.addEventListener('click', onDocumentClick, true);
+    current.onDocumentClick = onDocumentClick;
+
     // Fase de captura: si no, el atajo de Twitch actuaría sobre su reproductor pausado.
     const onKeyDown = (event) => {
       if (!PAUSE_KEYS.has(event.code) || event.ctrlKey || event.altKey || event.metaKey) return;
@@ -474,6 +482,7 @@
     current.status.remove();
     clearTimeout(current.hideTimer);
     if (current.onKeyDown) document.removeEventListener('keydown', current.onKeyDown, true);
+    if (current.onDocumentClick) document.removeEventListener('click', current.onDocumentClick, true);
     if (current.controls) current.controls.remove();
     if (current.indicator) current.indicator.remove();
     current.player.classList.remove('tam-player');
