@@ -452,6 +452,9 @@
     if (current.controls) current.controls.remove();
     if (current.indicator) current.indicator.remove();
     current.player.classList.remove('tam-player');
+    current.player.querySelectorAll('video').forEach((video) => {
+      video.disablePictureInPicture = false;
+    });
 
     current.muted.forEach((video) => {
       video.muted = false;
@@ -463,6 +466,8 @@
   function suppressNativePlayer() {
     session.player.querySelectorAll('video').forEach((video) => {
       if (video === session.video) return;
+      // Sin esto, el Picture-in-Picture del navegador puede elegir este video, que está pausado.
+      video.disablePictureInPicture = true;
       if (!video.muted) {
         video.muted = true;
         session.muted.add(video);
