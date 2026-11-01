@@ -13,6 +13,9 @@
   const TICK_MS = 250;
   const AD_POLL_MS = 2000;
   const RETRY_DELAY_MS = 5000;
+  const START_HEIGHT = 480;
+  const LIVE_SYNC_S = 6;
+  const LIVE_MAX_LATENCY_S = 14;
   const QUALITY_KEY = 'tam-quality';
   const VOLUME_KEY = 'tam-volume';
   const CONTROLS_HIDE_MS = 2500;
@@ -139,6 +142,21 @@
     return button;
   }
 
+  // El primer segmento en alta calidad retrasa varios segundos el primer fotograma: se empieza
+  // con uno ligero y se sube a la calidad elegida. La comprobación respeta un cambio manual.
+  function startAtLowQuality(hls, targetIndex) {
+    const startIndex = hls.levels.findIndex((level) => level.height >= START_HEIGHT);
+    if (startIndex === -1 || startIndex >= targetIndex) {
+      hls.loadLevel = targetIndex;
+      return;
+    }
+
+    hls.loadLevel = startIndex;
+    hls.once(Hls.Events.FRAG_BUFFERED, () => {
+      if (hls.loadLevel === startIndex) hls.loadLevel = targetIndex;
+    });
+  }
+
   // La preferencia se guarda por etiqueta: los índices cambian entre canales.
   function createQualityMenu(hls) {
     // hls.js ordena de menor a mayor; el menú se muestra de mayor a menor.
@@ -174,7 +192,7 @@
     });
 
     const savedOption = options.find(({ label }) => label === saved) || options[0];
-    if (savedOption.index !== -1) hls.loadLevel = savedOption.index;
+    if (savedOption.index !== -1) startAtLowQuality(hls, savedOption.index);
     select(menu.children[options.indexOf(savedOption)]);
 
     const settings = createButton(ICONS.settings, 'Quality');
@@ -380,7 +398,14 @@
   }
 
   function startPlayback(current, masterUrl) {
-    const hls = new Hls({ enableWorker: false, pLoader: createLoaderClass() });
+    const hls = new Hls({
+      pLoader: createLoaderClass(),
+      // Evita descargar un segmento de prueba antes de empezar.
+      testBandwidth: false,
+      // Por defecto se calcula con TARGETDURATION, y deja el video a unos 18 s del directo.
+      liveSyncDuration: LIVE_SYNC_S,
+      liveMaxLatencyDuration: LIVE_MAX_LATENCY_S
+    });
     current.hls = hls;
 
     hls.on(Hls.Events.ERROR, (event, data) => {
