@@ -16,6 +16,8 @@
   const START_HEIGHT = 480;
   const LIVE_SYNC_S = 6;
   const LIVE_MAX_LATENCY_S = 14;
+  const STALL_JUMP_MS = 6000;
+  const STALL_RESTART_MS = 15000;
   const QUALITY_KEY = 'tam-quality';
   const VOLUME_KEY = 'tam-volume';
   const CONTROLS_HIDE_MS = 2500;
@@ -301,11 +303,7 @@
       }
       flashIndicator(ICONS.play);
       // Al reanudar se salta al último segmento de la playlist, no al punto donde se pausó.
-      const details = hls.latestLevelDetails;
-      const lastFragment = details && details.fragments[details.fragments.length - 1];
-      if (lastFragment && lastFragment.start > video.currentTime) {
-        video.currentTime = lastFragment.start;
-      }
+      jumpToLatest(hls, video);
       video.play().catch(() => {});
     };
     play.addEventListener('click', togglePlay);
@@ -510,6 +508,35 @@
     });
   }
 
+  function jumpToLatest(hls, video) {
+    const details = hls.latestLevelDetails;
+    const lastFragment = details && details.fragments[details.fragments.length - 1];
+    if (lastFragment && lastFragment.start > video.currentTime) {
+      video.currentTime = lastFragment.start;
+    }
+  }
+
+  // Si el video deja de avanzar sin que el usuario lo haya pausado, primero se salta al último
+  // segmento y, si sigue parado, se reinicia la sesión: el siguiente ciclo la vuelve a crear.
+  function recoverFromStall(current) {
+    const { video } = current;
+    const now = Date.now();
+    if (video.paused || video.currentTime !== current.lastTime) {
+      current.lastTime = video.currentTime;
+      current.lastProgressAt = now;
+      current.stallJumped = false;
+      return;
+    }
+
+    const stalledFor = now - current.lastProgressAt;
+    if (stalledFor >= STALL_RESTART_MS) {
+      stopSession();
+    } else if (stalledFor >= STALL_JUMP_MS && !current.stallJumped) {
+      current.stallJumped = true;
+      jumpToLatest(current.hls, video);
+    }
+  }
+
   function tick() {
     const login = currentLogin();
     const player = document.querySelector('.video-player');
@@ -521,7 +548,9 @@
     if (!login || !player || login === unavailableLogin) return;
 
     if (!session && Date.now() >= retryAt) startSession(login, player);
-    if (session) suppressNativePlayer();
+    if (!session) return;
+    suppressNativePlayer();
+    if (session.hls) recoverFromStall(session);
   }
 
   setInterval(tick, TICK_MS);
